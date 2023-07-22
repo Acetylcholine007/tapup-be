@@ -1,0 +1,14 @@
+{
+  "INVALID_CREDENTIALS": {
+    "message": "Invalid Credentials",
+    "errorCode": "US-001"
+  },
+  "USER_ALREADY_REGISTERED": {
+    "message": "Email already registered!",
+    "errorCode": "US-002"
+  },
+  "USER.NOT_FOUND": {
+    "message": "User not found!",
+    "errorCode": "US-003"
+  }
+}

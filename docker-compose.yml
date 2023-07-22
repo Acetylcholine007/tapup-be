@@ -1,0 +1,47 @@
+version: '3'
+services:
+  postgres:
+    image: postgres
+    restart: always
+    volumes:
+      - postgres_nest:/data/postgres
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      PGDATA: /data/postgres
+    networks:
+      - tapup-net
+  redis:
+    image: redis
+    restart: always
+    volumes:
+      - redis_nest:/data
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    networks:
+      - tapup-net
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - '${APP_PORT:-3000}:${APP_PORT:-3000}'
+    env_file: .env
+    depends_on:
+      - postgres
+      - redis
+    command: sh -c "yarn build && yarn migration:up && yarn start:dev"
+    networks:
+      - tapup-net
+volumes:
+  postgres_nest:
+  redis_nest:
+networks:
+  tapup-net:
