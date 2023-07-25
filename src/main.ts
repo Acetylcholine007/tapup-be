@@ -10,11 +10,10 @@ import { join } from 'path';
 async function bootstrap() {
   const logger = new Logger('Bootstrap', { timestamp: true });
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  app.setGlobalPrefix('api');
-  app.enableCors(corsConfig);
   const configService = app.get(ConfigService);
 
-  app.useStaticAssets(join(__dirname, '..', 'public'));
+  app.setGlobalPrefix('api');
+  app.enableCors(corsConfig);
   app.setBaseViewsDir(join(__dirname, '..', 'views'));
   app.setViewEngine('ejs');
 
@@ -46,6 +45,7 @@ async function setupSwagger(
 ) {
   const documentBuilder = new DocumentBuilder()
     .setTitle(configService.get('appName'))
+    .setDescription('REST API for TapUp App')
     .addBearerAuth();
 
   if (configService.get('apiVersion')) {
