@@ -1,14 +1,18 @@
 import { HttpExceptionFilter } from '@common/filters/http-exception/http-exception.filter';
+import { TimeoutInterceptor } from '@common/interceptors/timeout/timeout.interceptor';
 import appConfig from '@config/app.config';
 import dbConfig from '@config/db.config';
-import { Module } from '@nestjs/common';
+import {
+  ClassSerializerInterceptor,
+  Module,
+  ValidationPipe,
+} from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
 import { join } from 'path';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -22,7 +26,7 @@ import { AppService } from './app.service';
     I18nModule.forRoot({
       fallbackLanguage: 'en',
       loaderOptions: {
-        path: join(__dirname, '../src/i18n/'),
+        path: join(__dirname, '../i18n/'),
         watch: true,
       },
       resolvers: [
@@ -30,13 +34,31 @@ import { AppService } from './app.service';
         AcceptLanguageResolver,
       ],
     }),
+    UserModule,
   ],
-  controllers: [AppController],
   providers: [
-    AppService,
+    {
+      provide: APP_PIPE,
+      useValue: new ValidationPipe({
+        whitelist: true,
+        transform: true,
+        forbidNonWhitelisted: true,
+        transformOptions: {
+          enableImplicitConversion: true,
+        },
+      }),
+    },
     {
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ClassSerializerInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TimeoutInterceptor,
     },
   ],
 })
