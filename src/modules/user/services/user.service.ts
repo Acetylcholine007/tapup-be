@@ -21,9 +21,12 @@ export class UserService {
     });
   }
 
-  async getUser(id: string) {
-    const user = await this.userRepository.findOne({ where: { id } });
-    if (!user) throw new NotFoundException(`User ${id} not found`);
+  async getUser(query: string, target = 'id') {
+    const user = await this.userRepository.findOne({
+      where: { [target]: query },
+    });
+    if (!user)
+      throw new NotFoundException(`User with ${target} of ${query} not found`);
     return user;
   }
 
