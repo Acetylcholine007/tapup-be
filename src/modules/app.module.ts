@@ -1,4 +1,5 @@
 import { HttpExceptionFilter } from '@common/filters/http-exception/http-exception.filter';
+import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { TimeoutInterceptor } from '@common/interceptors/timeout/timeout.interceptor';
 import appConfig from '@config/app.config';
 import dbConfig from '@config/db.config';
@@ -8,10 +9,11 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
 import { join } from 'path';
+import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 
 @Module({
@@ -35,6 +37,7 @@ import { UserModule } from './user/user.module';
       ],
     }),
     UserModule,
+    AuthModule,
   ],
   providers: [
     {
@@ -59,6 +62,10 @@ import { UserModule } from './user/user.module';
     {
       provide: APP_INTERCEPTOR,
       useClass: TimeoutInterceptor,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
     },
   ],
 })
