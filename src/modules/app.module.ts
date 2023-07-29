@@ -1,5 +1,6 @@
 import { HttpExceptionFilter } from '@common/filters/http-exception/http-exception.filter';
 import { AccessTokenGuard } from '@common/guards/access-token.guard';
+import { RolesGuard } from '@common/guards/roles.guard';
 import { TimeoutInterceptor } from '@common/interceptors/timeout/timeout.interceptor';
 import appConfig from '@config/app.config';
 import dbConfig from '@config/db.config';
@@ -68,6 +69,10 @@ import { UserModule } from './user/user.module';
     {
       provide: APP_GUARD,
       useClass: AccessTokenGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
   ],
 })

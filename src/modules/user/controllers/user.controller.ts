@@ -1,4 +1,6 @@
+import { Roles } from '@common/decorators/roles.decorator';
 import { PaginationInput } from '@common/dto/input/pagination.input';
+import { Role } from '@enums/user.enum';
 import {
   Body,
   Controller,
@@ -30,11 +32,13 @@ export class UserController {
     return this.userService.getUser(userId);
   }
 
+  @Roles(Role.ADMIN)
   @Post()
   createUser(@Body() createUserInput: CreateUserInput) {
     return this.userService.createUser(createUserInput);
   }
 
+  @Roles(Role.ADMIN)
   @Patch('/:userId')
   updateUser(
     @Param('userId') userId: string,
@@ -43,6 +47,7 @@ export class UserController {
     return this.userService.updateUser(userId, updateUserInput);
   }
 
+  @Roles(Role.ADMIN)
   @Delete('/:userId')
   deleteUser(@Param('userId') userId: string) {
     return this.userService.deleteUser(userId);
