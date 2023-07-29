@@ -1,5 +1,5 @@
 import { HttpExceptionFilter } from '@common/filters/http-exception/http-exception.filter';
-import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
+import { AccessTokenGuard } from '@common/guards/access-token.guard';
 import { TimeoutInterceptor } from '@common/interceptors/timeout/timeout.interceptor';
 import appConfig from '@config/app.config';
 import dbConfig from '@config/db.config';
@@ -14,8 +14,8 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
 import { join } from 'path';
 import { AuthModule } from './auth/auth.module';
-import { UserModule } from './user/user.module';
 import { CryptoModule } from './crypto/crypto.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -67,7 +67,7 @@ import { CryptoModule } from './crypto/crypto.module';
     },
     {
       provide: APP_GUARD,
-      useClass: JwtAuthGuard,
+      useClass: AccessTokenGuard,
     },
   ],
 })
