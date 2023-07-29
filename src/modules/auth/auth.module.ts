@@ -1,5 +1,6 @@
-import { JwtStrategy } from '@common/strategies/jwt.strategy';
+import { AccessTokenStrategy } from '@common/strategies/access-token.strategy';
 import { LocalStrategy } from '@common/strategies/local.strategy';
+import { RefreshTokenStrategy } from '@common/strategies/refresh-token.strategy';
 import jwtConfig from '@config/jwt.config';
 import { CryptoModule } from '@modules/crypto/crypto.module';
 import { UserModule } from '@modules/user/user.module';
@@ -19,7 +20,12 @@ import { AuthService } from './services/auth.service';
     JwtModule.registerAsync(jwtConfig.asProvider()),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    AccessTokenStrategy,
+    RefreshTokenStrategy,
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}
