@@ -2,7 +2,12 @@ import jwtConfig from '@config/jwt.config';
 import { UserEntity } from '@entities/user.entity';
 import { CryptoService } from '@modules/crypto/services/crypto.service';
 import { UserService } from '@modules/user/services/user.service';
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import {
@@ -78,10 +83,17 @@ export class AuthService {
   }
 
   async registerLocal(registerInput: RegisterLocalInput): Promise<TokenOutput> {
-    const existingUser = await this.userService.getUser(
-      registerInput.email,
-      'email'
-    );
+    let existingUser: UserEntity;
+    try {
+      existingUser = await this.userService.getUser(
+        registerInput.email,
+        'email'
+      );
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        existingUser = undefined;
+      }
+    }
 
     if (existingUser) throw new ConflictException('Email already exists');
 

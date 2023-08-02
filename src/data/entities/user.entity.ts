@@ -1,6 +1,7 @@
 import { Role } from '@enums/user.enum';
 import { Exclude } from 'class-transformer';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { BusinessCardEntity } from './business-card.entity';
 
 @Entity('user')
 export class UserEntity {
@@ -43,4 +44,10 @@ export class UserEntity {
 
   @Column({ enum: Role, default: Role.REGULAR })
   role: Role;
+
+  @OneToMany(() => BusinessCardEntity, (businessCards) => businessCards.user, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  businessCards: BusinessCardEntity[];
 }
