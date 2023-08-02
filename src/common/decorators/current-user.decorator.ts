@@ -3,7 +3,7 @@ import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { REQUEST_USER_KEY } from 'src/data/constants/auth.constants';
 
 export const CurrentUser = createParamDecorator(
-  (data: string, context: ExecutionContext) => {
+  (data: keyof UserEntity, context: ExecutionContext) => {
     const request = context.switchToHttp().getRequest();
     const user: UserEntity = request[REQUEST_USER_KEY];
 

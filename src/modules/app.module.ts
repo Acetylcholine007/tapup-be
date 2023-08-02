@@ -15,6 +15,7 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
 import { join } from 'path';
 import { AuthModule } from './auth/auth.module';
+import { BusinessCardModule } from './business-card/business-card.module';
 import { CryptoModule } from './crypto/crypto.module';
 import { UserModule } from './user/user.module';
 
@@ -41,6 +42,7 @@ import { UserModule } from './user/user.module';
     UserModule,
     AuthModule,
     CryptoModule,
+    BusinessCardModule,
   ],
   providers: [
     {
@@ -49,9 +51,6 @@ import { UserModule } from './user/user.module';
         whitelist: true,
         transform: true,
         forbidNonWhitelisted: true,
-        transformOptions: {
-          enableImplicitConversion: true,
-        },
       }),
     },
     {
