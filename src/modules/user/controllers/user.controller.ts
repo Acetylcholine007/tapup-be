@@ -16,7 +16,7 @@ import { CreateUserInput } from '../dtos/input/create-user.input';
 import { UpdateUserInput } from '../dtos/input/update-user.input';
 import { UserService } from '../services/user.service';
 
-@ApiTags('User')
+@ApiTags('Users')
 @ApiBearerAuth()
 @Controller('users')
 export class UserController {

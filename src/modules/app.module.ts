@@ -18,6 +18,7 @@ import { AuthModule } from './auth/auth.module';
 import { BusinessCardModule } from './business-card/business-card.module';
 import { CryptoModule } from './crypto/crypto.module';
 import { UserModule } from './user/user.module';
+import { AmenityModule } from './amenity/amenity.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { UserModule } from './user/user.module';
     AuthModule,
     CryptoModule,
     BusinessCardModule,
+    AmenityModule,
   ],
   providers: [
     {

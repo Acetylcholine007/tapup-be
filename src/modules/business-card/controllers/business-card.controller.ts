@@ -13,13 +13,13 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CreateBusinessCardInput } from '../dtos/input/create-business-card.input';
-import { UpdateBusinessCardP31NInput } from '../dtos/input/update-business-card-p13n.input';
+import { UpdateBusinessCardP13NInput } from '../dtos/input/update-business-card-p13n.input';
 import { UpdateBusinessCardInput } from '../dtos/input/update-business-card.input';
 import { BusinessCardService } from '../services/business-card.service';
 
-@ApiTags('Business Card')
+@ApiTags('Business Cards')
 @ApiBearerAuth()
-@Controller('business-card')
+@Controller('business-cards')
 export class BusinessCardController {
   constructor(private readonly businessCardService: BusinessCardService) {}
 
@@ -52,7 +52,7 @@ export class BusinessCardController {
   @Patch('/personalization/:businessCardId')
   updateBusinessCardP13N(
     @Param('businessCardId') businessCardId: string,
-    @Body() updateBusinessCardP13NInput: UpdateBusinessCardP31NInput
+    @Body() updateBusinessCardP13NInput: UpdateBusinessCardP13NInput
   ) {
     return this.businessCardService.updateBusinessCardP13n(
       businessCardId,

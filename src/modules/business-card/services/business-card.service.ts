@@ -2,7 +2,6 @@ import { PaginationInput } from '@common/dto/input/pagination.input';
 import { BusinessCardPersonalizationEntity } from '@entities/business-card-p13n.entity';
 import { BusinessCardEntity } from '@entities/business-card.entity';
 import { UserEntity } from '@entities/user.entity';
-import { UserService } from '@modules/user/services/user.service';
 import {
   Injectable,
   InternalServerErrorException,
@@ -10,9 +9,9 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { CreateBusinessCardP31NInput } from '../dtos/input/create-business-card-p13n.input';
+import { CreateBusinessCardP13NInput } from '../dtos/input/create-business-card-p13n.input';
 import { CreateBusinessCardInput } from '../dtos/input/create-business-card.input';
-import { UpdateBusinessCardP31NInput } from '../dtos/input/update-business-card-p13n.input';
+import { UpdateBusinessCardP13NInput } from '../dtos/input/update-business-card-p13n.input';
 import { UpdateBusinessCardInput } from '../dtos/input/update-business-card.input';
 
 @Injectable()
@@ -22,8 +21,7 @@ export class BusinessCardService {
     private readonly businessCardRepository: Repository<BusinessCardEntity>,
     @InjectRepository(BusinessCardPersonalizationEntity)
     private readonly businessCardP13nRepository: Repository<BusinessCardPersonalizationEntity>,
-    private readonly dataSource: DataSource,
-    private readonly userService: UserService
+    private readonly dataSource: DataSource
   ) {}
 
   async getBusinessCards(paginationQuery: PaginationInput) {
@@ -31,21 +29,21 @@ export class BusinessCardService {
     return this.businessCardRepository.find({
       skip: offset,
       take: limit,
-      relations: { personalization: true },
+      relations: { personalization: true, amenities: true },
     });
   }
 
   async getMyBusinessCards(userId: string) {
     return this.businessCardRepository.find({
       where: { user: { id: userId } },
-      relations: { personalization: true },
+      relations: { personalization: true, amenities: true },
     });
   }
 
   async getBusinessCard(query: string, target = 'id') {
     const businessCard = await this.businessCardRepository.findOne({
       where: { [target]: query },
-      relations: { personalization: true },
+      relations: { personalization: true, amenities: true },
     });
     if (!businessCard)
       throw new NotFoundException(
@@ -71,7 +69,7 @@ export class BusinessCardService {
 
     try {
       businessCard = this.businessCardRepository.create(restBusinessCardInput);
-      businessCard.user = user;
+      user.businessCards.push(businessCard);
 
       if (personalization) {
         personalizationInstance = this.businessCardP13nRepository.create({
@@ -81,15 +79,12 @@ export class BusinessCardService {
       }
       if (personalizationInstance) {
         businessCard.personalization = personalizationInstance;
-        await queryRunner.manager.save(personalizationInstance);
       }
 
-      await queryRunner.manager.save(businessCard);
       await queryRunner.manager.save(user);
       await queryRunner.commitTransaction();
       isSuccess = true;
     } catch (error) {
-      console.log(error);
       await queryRunner.rollbackTransaction();
     } finally {
       await queryRunner.release();
@@ -144,7 +139,7 @@ export class BusinessCardService {
 
   async updateBusinessCardP13n(
     businessCardId: string,
-    updateBusinessCardP31NInput: UpdateBusinessCardP31NInput
+    updateBusinessCardP31NInput: UpdateBusinessCardP13NInput
   ) {
     const businessCard = await this.getBusinessCard(businessCardId);
     const personalizationInstance = await this.preloadPersonalization(
@@ -165,7 +160,7 @@ export class BusinessCardService {
     businessId: string,
     personalization?: {
       businessCard: BusinessCardEntity;
-      data: CreateBusinessCardP31NInput;
+      data: CreateBusinessCardP13NInput;
     }
   ) {
     const personalizationInstance =
