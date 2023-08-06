@@ -18,12 +18,14 @@ export class UserService {
     return this.userRepository.find({
       skip: offset,
       take: limit,
+      relations: { businessCards: true },
     });
   }
 
   async getUser(query: string, target = 'id') {
     const user = await this.userRepository.findOne({
       where: { [target]: query },
+      relations: { businessCards: true },
     });
     if (!user)
       throw new NotFoundException(`User with ${target} of ${query} not found`);

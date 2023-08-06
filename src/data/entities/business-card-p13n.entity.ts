@@ -1,8 +1,10 @@
+import { Exclude } from 'class-transformer';
 import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { BusinessCardEntity } from './business-card.entity';
 
 @Entity('business_card_p13n')
 export class BusinessCardPersonalizationEntity {
+  @Exclude()
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -29,10 +31,7 @@ export class BusinessCardPersonalizationEntity {
 
   @OneToOne(
     () => BusinessCardEntity,
-    (businessCard) => businessCard.personalization,
-    {
-      onDelete: 'CASCADE',
-    }
+    (businessCard) => businessCard.personalization
   )
   businessCard: BusinessCardEntity;
 }

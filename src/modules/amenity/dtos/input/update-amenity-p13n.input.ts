@@ -1,37 +1,37 @@
-import { BusinessCardPersonalizationEntity } from '@entities/business-card-p13n.entity';
+import { AmenityPersonalizationEntity } from '@entities/amenity-p13n.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsString } from 'class-validator';
 
-export class UpdateBusinessCardP13NInput
-  implements Omit<BusinessCardPersonalizationEntity, 'id' | 'businessCard'>
+export class UpdateAmenityP13NInput
+  implements Partial<Omit<AmenityPersonalizationEntity, 'id' | 'amenity'>>
 {
   @ApiProperty()
   @IsOptional()
   @IsString()
-  dayTextColor?: string;
+  primaryBackgroundColor?: string;
 
   @ApiProperty()
   @IsOptional()
   @IsString()
-  timeTextColor?: string;
+  secondaryBackgroundColor?: string;
 
   @ApiProperty()
   @IsOptional()
   @IsString()
-  cardBackgroundColor?: string;
+  primaryTextColor?: string;
 
   @ApiProperty()
   @IsOptional()
   @IsString()
-  overallBackgroundColor?: string;
-
-  @ApiProperty()
-  @IsOptional()
-  @IsString()
-  coverBackgroundColor?: string;
+  secondaryTextColor?: string;
 
   @ApiProperty()
   @IsOptional()
   @IsString()
   borderColor?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  borderRadius?: string;
 }

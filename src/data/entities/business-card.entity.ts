@@ -4,9 +4,11 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { AmenityEntity } from './amenity.entity';
 import { BusinessCardPersonalizationEntity } from './business-card-p13n.entity';
 import { UserEntity } from './user.entity';
 
@@ -47,10 +49,20 @@ export class BusinessCardEntity {
   })
   user: UserEntity;
 
+  @OneToMany(() => AmenityEntity, (amenity) => amenity.businessCard, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  amenities: AmenityEntity[];
+
   @OneToOne(
     () => BusinessCardPersonalizationEntity,
-    (personalization) => personalization.businessCard
+    (personalization) => personalization.businessCard,
+    {
+      cascade: true,
+      onDelete: 'CASCADE',
+    }
   )
   @JoinColumn()
-  personalization: BusinessCardPersonalizationEntity;
+  personalization?: BusinessCardPersonalizationEntity;
 }
