@@ -5,7 +5,7 @@ import { IsOptional, IsString, ValidateNested } from 'class-validator';
 import { CreateAmenityP13NInput } from './create-amenity-p13n.input';
 
 export class UpdateAmenityInput
-  implements Partial<Omit<AmenityEntity, 'id' | 'amenity' | 'personalization'>>
+  implements Partial<Omit<AmenityEntity, 'id' | 'personalization'>>
 {
   @ApiProperty()
   @IsOptional()
