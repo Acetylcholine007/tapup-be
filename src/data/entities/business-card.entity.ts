@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { AmenityEntity } from './amenity.entity';
 import { BusinessCardPersonalizationEntity } from './business-card-p13n.entity';
+import { CompanyEntity } from './company.entity';
 import { UserEntity } from './user.entity';
 
 @Entity('business_card')
@@ -48,6 +49,11 @@ export class BusinessCardEntity {
     onDelete: 'CASCADE',
   })
   user: UserEntity;
+
+  @ManyToOne(() => CompanyEntity, (company) => company.businessCard, {
+    onDelete: 'SET NULL',
+  })
+  company: CompanyEntity;
 
   @OneToMany(() => AmenityEntity, (amenity) => amenity.businessCard, {
     cascade: true,

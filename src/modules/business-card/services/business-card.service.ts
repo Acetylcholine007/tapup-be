@@ -1,7 +1,9 @@
 import { PaginationInput } from '@common/dto/input/pagination.input';
 import { BusinessCardPersonalizationEntity } from '@entities/business-card-p13n.entity';
 import { BusinessCardEntity } from '@entities/business-card.entity';
+import { CompanyEntity } from '@entities/company.entity';
 import { UserEntity } from '@entities/user.entity';
+import { CompanyService } from '@modules/company/services/company.service';
 import {
   Injectable,
   InternalServerErrorException,
@@ -21,7 +23,8 @@ export class BusinessCardService {
     private readonly businessCardRepository: Repository<BusinessCardEntity>,
     @InjectRepository(BusinessCardPersonalizationEntity)
     private readonly businessCardP13nRepository: Repository<BusinessCardPersonalizationEntity>,
-    private readonly dataSource: DataSource
+    private readonly dataSource: DataSource,
+    private readonly companyService: CompanyService
   ) {}
 
   async getBusinessCards(paginationQuery: PaginationInput) {
@@ -29,21 +32,24 @@ export class BusinessCardService {
     return this.businessCardRepository.find({
       skip: offset,
       take: limit,
-      relations: { personalization: true, amenities: true },
+      relations: { personalization: true, company: true, amenities: true },
     });
   }
 
   async getMyBusinessCards(userId: string) {
     return this.businessCardRepository.find({
       where: { user: { id: userId } },
-      relations: { personalization: true, amenities: true },
+      relations: { personalization: true, company: true, amenities: true },
     });
   }
 
-  async getBusinessCard(query: string, target = 'id') {
+  async getBusinessCard(
+    query: string,
+    target: keyof BusinessCardEntity = 'id'
+  ) {
     const businessCard = await this.businessCardRepository.findOne({
       where: { [target]: query },
-      relations: { personalization: true, amenities: true },
+      relations: { personalization: true, company: true, amenities: true },
     });
     if (!businessCard)
       throw new NotFoundException(
@@ -56,7 +62,7 @@ export class BusinessCardService {
     user: UserEntity,
     createBusinessCardInput: CreateBusinessCardInput
   ) {
-    const { personalization, ...restBusinessCardInput } =
+    const { personalization, companyId, company, ...restBusinessCardInput } =
       createBusinessCardInput;
 
     const queryRunner = this.dataSource.createQueryRunner();
@@ -64,6 +70,7 @@ export class BusinessCardService {
     await queryRunner.startTransaction();
 
     let businessCard: BusinessCardEntity;
+    let cardCompany: CompanyEntity;
     let personalizationInstance: BusinessCardPersonalizationEntity;
     let isSuccess = false;
 
@@ -79,6 +86,14 @@ export class BusinessCardService {
       }
       if (personalizationInstance) {
         businessCard.personalization = personalizationInstance;
+      }
+      if (companyId) {
+        cardCompany = await this.companyService.getCompany(companyId);
+      } else if (company) {
+        cardCompany = await this.companyService.createCompany(company);
+      }
+      if (cardCompany) {
+        businessCard.company = cardCompany;
       }
 
       await queryRunner.manager.save(user);

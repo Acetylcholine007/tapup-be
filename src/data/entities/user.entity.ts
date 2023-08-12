@@ -1,6 +1,12 @@
 import { Role } from '@enums/user.enum';
 import { Exclude } from 'class-transformer';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { BusinessCardEntity } from './business-card.entity';
 
 @Entity('user')
@@ -14,6 +20,7 @@ export class UserEntity {
   @Column()
   lastName: string;
 
+  @Index()
   @Column({ unique: true })
   email: string;
 

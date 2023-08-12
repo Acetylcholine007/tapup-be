@@ -22,7 +22,7 @@ export class UserService {
     });
   }
 
-  async getUser(query: string, target = 'id') {
+  async getUser(query: string, target: keyof UserEntity = 'id') {
     const user = await this.userRepository.findOne({
       where: { [target]: query },
       relations: { businessCards: true },

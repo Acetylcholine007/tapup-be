@@ -49,7 +49,7 @@ export class AmenityService {
     });
   }
 
-  async getAmenity(query: string, target = 'id') {
+  async getAmenity(query: string, target: keyof AmenityEntity = 'id') {
     const amenity = await this.amenityRepository.findOne({
       where: { [target]: query },
       relations: { personalization: true, businessCard: true },

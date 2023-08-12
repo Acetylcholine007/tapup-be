@@ -1,7 +1,8 @@
 import { BusinessCardEntity } from '@entities/business-card.entity';
+import { CreateCompanyInput } from '@modules/company/dtos/inputs/create-company.input';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsOptional, IsString, IsUUID, ValidateNested } from 'class-validator';
 import { BusinessHoursInput } from './business-hours.input';
 import { CreateBusinessCardP13NInput } from './create-business-card-p13n.input';
 
@@ -9,7 +10,7 @@ export class UpdateBusinessCardInput
   implements
     Omit<
       Partial<BusinessCardEntity>,
-      'id' | 'user' | 'amenities' | 'personalization'
+      'id' | 'user' | 'amenities' | 'company' | 'personalization'
     >
 {
   @ApiProperty()
@@ -57,6 +58,17 @@ export class UpdateBusinessCardInput
   @IsOptional()
   @IsString()
   telegram?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsUUID()
+  companyId?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @Type(() => CreateCompanyInput)
+  @ValidateNested()
+  company?: CreateCompanyInput;
 
   @ApiProperty()
   @IsOptional()

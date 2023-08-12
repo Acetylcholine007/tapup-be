@@ -8,7 +8,10 @@ import { UpdateBusinessCardInput } from './update-business-card.input';
 export class CreateBusinessCardInput
   extends UpdateBusinessCardInput
   implements
-    Omit<BusinessCardEntity, 'id' | 'user' | 'amenities' | 'personalization'>
+    Omit<
+      BusinessCardEntity,
+      'id' | 'user' | 'amenities' | 'company' | 'personalization'
+    >
 {
   @ApiProperty()
   @IsNotEmpty()
