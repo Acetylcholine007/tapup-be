@@ -28,7 +28,7 @@ async function bootstrap() {
     console.info(`Server Details:
         port: ${configService.get('port')}
         environment: ${configService.get('environment')}
-        Swagger Documentation: ${await app.getUrl()}/documentation
+        Swagger Documentation: ${await app.getUrl()}/api
         GraphQL Playground: ${await app.getUrl()}/graphql
         `);
   });
@@ -53,7 +53,7 @@ async function setupSwagger(
   }
 
   const document = SwaggerModule.createDocument(app, documentBuilder.build());
-  SwaggerModule.setup('/documentation', app, document, {
+  SwaggerModule.setup('/api', app, document, {
     swaggerOptions: {
       persistAuthorization: true,
       operationsSorter: 'method',

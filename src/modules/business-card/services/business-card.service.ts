@@ -4,6 +4,7 @@ import { BusinessCardEntity } from '@entities/business-card.entity';
 import { CompanyEntity } from '@entities/company.entity';
 import { UserEntity } from '@entities/user.entity';
 import { CompanyService } from '@modules/company/services/company.service';
+import { SocialMediaService } from '@modules/social-media/services/social-media.service';
 import {
   Injectable,
   InternalServerErrorException,
@@ -24,7 +25,8 @@ export class BusinessCardService {
     @InjectRepository(BusinessCardPersonalizationEntity)
     private readonly businessCardP13nRepository: Repository<BusinessCardPersonalizationEntity>,
     private readonly dataSource: DataSource,
-    private readonly companyService: CompanyService
+    private readonly companyService: CompanyService,
+    private readonly socialMediaService: SocialMediaService
   ) {}
 
   async getBusinessCards(paginationQuery: PaginationInput) {
@@ -32,14 +34,24 @@ export class BusinessCardService {
     return this.businessCardRepository.find({
       skip: offset,
       take: limit,
-      relations: { personalization: true, company: true, amenities: true },
+      relations: {
+        personalization: true,
+        company: true,
+        amenities: true,
+        socialMediaLinks: { socialMedia: true },
+      },
     });
   }
 
   async getMyBusinessCards(userId: string) {
     return this.businessCardRepository.find({
       where: { user: { id: userId } },
-      relations: { personalization: true, company: true, amenities: true },
+      relations: {
+        personalization: true,
+        company: true,
+        amenities: true,
+        socialMediaLinks: { socialMedia: true },
+      },
     });
   }
 
@@ -49,7 +61,12 @@ export class BusinessCardService {
   ) {
     const businessCard = await this.businessCardRepository.findOne({
       where: { [target]: query },
-      relations: { personalization: true, company: true, amenities: true },
+      relations: {
+        personalization: true,
+        company: true,
+        amenities: true,
+        socialMediaLinks: { socialMedia: true },
+      },
     });
     if (!businessCard)
       throw new NotFoundException(
@@ -62,8 +79,13 @@ export class BusinessCardService {
     user: UserEntity,
     createBusinessCardInput: CreateBusinessCardInput
   ) {
-    const { personalization, companyId, company, ...restBusinessCardInput } =
-      createBusinessCardInput;
+    const {
+      personalization,
+      companyId,
+      company,
+      socialMedia,
+      ...restBusinessCardInput
+    } = createBusinessCardInput;
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -95,6 +117,14 @@ export class BusinessCardService {
       if (cardCompany) {
         businessCard.company = cardCompany;
       }
+      if (socialMedia) {
+        businessCard.socialMediaLinks =
+          await this.socialMediaService.setSocialMediaMapping(
+            businessCard,
+            socialMedia,
+            true
+          );
+      }
 
       await queryRunner.manager.save(user);
       await queryRunner.commitTransaction();
@@ -113,14 +143,20 @@ export class BusinessCardService {
     businessCardId: string,
     updateBusinessCardInput: UpdateBusinessCardInput
   ) {
-    const { personalization, ...restBusinessCardInput } =
-      updateBusinessCardInput;
+    const {
+      personalization,
+      companyId,
+      company,
+      socialMedia,
+      ...restBusinessCardInput
+    } = updateBusinessCardInput;
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     const businessCard = await this.getBusinessCard(businessCardId);
+    let cardCompany: CompanyEntity;
     let isSuccess = false;
 
     try {
@@ -137,6 +173,22 @@ export class BusinessCardService {
       if (personalizationInstance) {
         Object.assign(personalizationInstance, personalization);
         await queryRunner.manager.save(personalizationInstance);
+      }
+      if (companyId) {
+        cardCompany = await this.companyService.getCompany(companyId);
+      } else if (company) {
+        cardCompany = await this.companyService.createCompany(company);
+      }
+      if (cardCompany) {
+        businessCard.company = cardCompany;
+      }
+      if (socialMedia) {
+        businessCard.socialMediaLinks =
+          await this.socialMediaService.setSocialMediaMapping(
+            businessCard,
+            socialMedia,
+            true
+          );
       }
 
       await queryRunner.manager.save(businessCard);

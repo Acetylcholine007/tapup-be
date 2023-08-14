@@ -1,5 +1,6 @@
 import { BusinessCardEntity } from '@entities/business-card.entity';
 import { CreateCompanyInput } from '@modules/company/dtos/inputs/create-company.input';
+import { SocialMediaLinkInput } from '@modules/social-media/dtos/input/social-media-link.input';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsOptional, IsString, IsUUID, ValidateNested } from 'class-validator';
@@ -69,6 +70,12 @@ export class UpdateBusinessCardInput
   @Type(() => CreateCompanyInput)
   @ValidateNested()
   company?: CreateCompanyInput;
+
+  @ApiProperty({ type: [SocialMediaLinkInput] })
+  @IsOptional()
+  @Type(() => SocialMediaLinkInput)
+  @ValidateNested()
+  socialMedia: SocialMediaLinkInput[];
 
   @ApiProperty()
   @IsOptional()
