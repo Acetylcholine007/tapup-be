@@ -11,6 +11,7 @@ import {
 import { AmenityEntity } from './amenity.entity';
 import { BusinessCardPersonalizationEntity } from './business-card-p13n.entity';
 import { CompanyEntity } from './company.entity';
+import { SocialMediaMappingEntity } from './social-media-mapping.entity';
 import { UserEntity } from './user.entity';
 
 @Entity('business_card')
@@ -60,6 +61,13 @@ export class BusinessCardEntity {
     onDelete: 'CASCADE',
   })
   amenities: AmenityEntity[];
+
+  @OneToMany(
+    () => SocialMediaMappingEntity,
+    (socialMediaMapping) => socialMediaMapping.businessCard,
+    { cascade: true, onDelete: 'CASCADE' }
+  )
+  socialMediaLinks: SocialMediaMappingEntity[];
 
   @OneToOne(
     () => BusinessCardPersonalizationEntity,

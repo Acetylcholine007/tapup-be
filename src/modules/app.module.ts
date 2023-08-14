@@ -20,6 +20,7 @@ import { CryptoModule } from './crypto/crypto.module';
 import { UserModule } from './user/user.module';
 import { AmenityModule } from './amenity/amenity.module';
 import { CompanyModule } from './company/company.module';
+import { SocialMediaModule } from './social-media/social-media.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { CompanyModule } from './company/company.module';
     BusinessCardModule,
     AmenityModule,
     CompanyModule,
+    SocialMediaModule,
   ],
   providers: [
     {
