@@ -8,6 +8,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { BusinessCardEntity } from './business-card.entity';
+import { TestimonialEntity } from './testimonial.entity';
 
 @Entity('user')
 export class UserEntity {
@@ -57,4 +58,10 @@ export class UserEntity {
     onDelete: 'CASCADE',
   })
   businessCards: BusinessCardEntity[];
+
+  @OneToMany(() => TestimonialEntity, (testimonial) => testimonial.user, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  testimonials: TestimonialEntity[];
 }
