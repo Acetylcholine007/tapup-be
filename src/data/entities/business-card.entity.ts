@@ -12,6 +12,7 @@ import { AmenityEntity } from './amenity.entity';
 import { BusinessCardPersonalizationEntity } from './business-card-p13n.entity';
 import { CompanyEntity } from './company.entity';
 import { SocialMediaMappingEntity } from './social-media-mapping.entity';
+import { TestimonialEntity } from './testimonial.entity';
 import { UserEntity } from './user.entity';
 
 @Entity('business_card')
@@ -68,6 +69,16 @@ export class BusinessCardEntity {
     { cascade: true, onDelete: 'CASCADE' }
   )
   socialMediaLinks: SocialMediaMappingEntity[];
+
+  @OneToMany(
+    () => TestimonialEntity,
+    (testimonial) => testimonial.businessCard,
+    {
+      cascade: true,
+      onDelete: 'CASCADE',
+    }
+  )
+  testimonials: TestimonialEntity[];
 
   @OneToOne(
     () => BusinessCardPersonalizationEntity,

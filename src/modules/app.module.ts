@@ -21,6 +21,7 @@ import { UserModule } from './user/user.module';
 import { AmenityModule } from './amenity/amenity.module';
 import { CompanyModule } from './company/company.module';
 import { SocialMediaModule } from './social-media/social-media.module';
+import { TestimonialModule } from './testimonial/testimonial.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { SocialMediaModule } from './social-media/social-media.module';
     AmenityModule,
     CompanyModule,
     SocialMediaModule,
+    TestimonialModule,
   ],
   providers: [
     {

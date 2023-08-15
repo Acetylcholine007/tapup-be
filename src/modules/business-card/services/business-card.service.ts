@@ -39,6 +39,7 @@ export class BusinessCardService {
         company: true,
         amenities: true,
         socialMediaLinks: { socialMedia: true },
+        testimonials: { user: true },
       },
     });
   }
@@ -51,6 +52,7 @@ export class BusinessCardService {
         company: true,
         amenities: true,
         socialMediaLinks: { socialMedia: true },
+        testimonials: { user: true },
       },
     });
   }
@@ -66,6 +68,7 @@ export class BusinessCardService {
         company: true,
         amenities: true,
         socialMediaLinks: { socialMedia: true },
+        testimonials: { user: true },
       },
     });
     if (!businessCard)
