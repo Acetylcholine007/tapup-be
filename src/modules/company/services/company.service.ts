@@ -156,6 +156,13 @@ export class CompanyService {
     return this.companyP13nRepository.save(personalizationInstance);
   }
 
+  async verifyCompany(companyId: string) {
+    const company = await this.getCompany(companyId);
+
+    company.isVerified = true;
+    return this.companyRepository.save(company);
+  }
+
   async deleteCompany(companyId: string) {
     const company = await this.getCompany(companyId);
     return this.companyRepository.remove(company);

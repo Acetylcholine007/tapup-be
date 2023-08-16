@@ -19,6 +19,9 @@ export class CompanyEntity {
   @Column({ unique: true })
   name: string;
 
+  @Column({ default: false })
+  isVerified: boolean;
+
   @OneToMany(() => BusinessCardEntity, (businessCard) => businessCard.company, {
     onDelete: 'SET NULL',
   })

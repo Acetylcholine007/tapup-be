@@ -53,6 +53,12 @@ export class CompanyController {
     );
   }
 
+  // @Roles(Role.ADMIN)
+  @Patch('/verify/:companyId')
+  verifyCompany(@Param('companyId') companyId: string) {
+    return this.companyService.verifyCompany(companyId);
+  }
+
   @Patch('/:companyId')
   updateCompany(
     @Param('companyId') companyId: string,
