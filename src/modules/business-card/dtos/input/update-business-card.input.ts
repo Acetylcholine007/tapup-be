@@ -1,4 +1,5 @@
 import { BusinessCardEntity } from '@entities/business-card.entity';
+import { UpdateDependentAmenityInput } from '@modules/amenity/dtos/input/update-dependent-amenity.input';
 import { CreateCompanyInput } from '@modules/company/dtos/inputs/create-company.input';
 import { SocialMediaLinkInput } from '@modules/social-media/dtos/input/social-media-link.input';
 import { ApiProperty } from '@nestjs/swagger';
@@ -60,6 +61,12 @@ export class UpdateBusinessCardInput
   @IsString()
   telegram?: string;
 
+  @ApiProperty({ type: [UpdateDependentAmenityInput] })
+  @IsOptional()
+  @Type(() => UpdateDependentAmenityInput)
+  @ValidateNested()
+  amenities?: UpdateDependentAmenityInput[];
+
   @ApiProperty()
   @IsOptional()
   @IsUUID()
@@ -75,7 +82,7 @@ export class UpdateBusinessCardInput
   @IsOptional()
   @Type(() => SocialMediaLinkInput)
   @ValidateNested()
-  socialMedia: SocialMediaLinkInput[];
+  socialMedia?: SocialMediaLinkInput[];
 
   @ApiProperty()
   @IsOptional()
