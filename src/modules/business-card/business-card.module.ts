@@ -1,5 +1,6 @@
 import { BusinessCardPersonalizationEntity } from '@entities/business-card-p13n.entity';
 import { BusinessCardEntity } from '@entities/business-card.entity';
+import { AmenityModule } from '@modules/amenity/amenity.module';
 import { CompanyModule } from '@modules/company/company.module';
 import { SocialMediaModule } from '@modules/social-media/social-media.module';
 import { Module } from '@nestjs/common';
@@ -13,6 +14,7 @@ import { BusinessCardService } from './services/business-card.service';
       BusinessCardEntity,
       BusinessCardPersonalizationEntity,
     ]),
+    AmenityModule,
     CompanyModule,
     SocialMediaModule,
   ],

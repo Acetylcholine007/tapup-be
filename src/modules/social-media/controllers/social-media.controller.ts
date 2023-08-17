@@ -59,7 +59,7 @@ export class SocialMediaController {
   }
 
   @Delete('/:socialMediaId')
-  deleteAmenity(@Param('socialMediaId') socialMediaId: string) {
+  deleteSocialMedia(@Param('socialMediaId') socialMediaId: string) {
     return this.socialMediaService.deleteSocialMedia(socialMediaId);
   }
 }

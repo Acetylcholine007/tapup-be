@@ -2,8 +2,8 @@ import { PaginationInput } from '@common/dto/input/pagination.input';
 import { AmenityPersonalizationEntity } from '@entities/amenity-p13n.entity';
 import { AmenityEntity } from '@entities/amenity.entity';
 import { BusinessCardEntity } from '@entities/business-card.entity';
-import { BusinessCardService } from '@modules/business-card/services/business-card.service';
 import {
+  HttpException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -12,6 +12,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { CreateAmenityP13NInput } from '../dtos/input/create-amenity-p13n.input';
 import { CreateAmenityInput } from '../dtos/input/create-amenity.input';
+import { CreateDependentAmenityInput } from '../dtos/input/create-dependent-amenity.input';
 import { UpdateAmenityP13NInput } from '../dtos/input/update-amenity-p13n.input';
 import { UpdateAmenityInput } from '../dtos/input/update-amenity.input';
 
@@ -22,7 +23,8 @@ export class AmenityService {
     private readonly amenityRepository: Repository<AmenityEntity>,
     @InjectRepository(AmenityPersonalizationEntity)
     private readonly amenityP13nRepository: Repository<AmenityPersonalizationEntity>,
-    private readonly businessCardService: BusinessCardService,
+    @InjectRepository(BusinessCardEntity)
+    private readonly businessCardRepository: Repository<BusinessCardEntity>,
     private readonly dataSource: DataSource
   ) {}
 
@@ -61,9 +63,11 @@ export class AmenityService {
     return amenity;
   }
 
-  async createAmenity(createAmenityInput: CreateAmenityInput) {
-    const { businessCardId, personalization, ...restAmenityInput } =
-      createAmenityInput;
+  async createAmenity(
+    createAmenityInput: CreateAmenityInput | CreateDependentAmenityInput,
+    disableSave?: boolean
+  ) {
+    const { personalization, ...restAmenityInput } = createAmenityInput;
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -72,14 +76,10 @@ export class AmenityService {
     let businessCard: BusinessCardEntity;
     let amenity: AmenityEntity;
     let personalizationInstance: AmenityPersonalizationEntity;
-    let isSuccess = false;
+    let caughtError: unknown;
 
     try {
-      businessCard = await this.businessCardService.getBusinessCard(
-        businessCardId
-      );
       amenity = this.amenityRepository.create(restAmenityInput);
-      businessCard.amenities.push(amenity);
 
       if (personalization) {
         personalizationInstance = this.amenityP13nRepository.create({
@@ -91,16 +91,27 @@ export class AmenityService {
         amenity.personalization = personalizationInstance;
       }
 
-      await queryRunner.manager.save(businessCard);
-      await queryRunner.commitTransaction();
-      isSuccess = true;
+      if (!disableSave) {
+        if (!('businessCardId' in createAmenityInput))
+          throw new InternalServerErrorException(
+            'Business card ID is undefined'
+          );
+        businessCard = await this.businessCardRepository.findOne({
+          where: { id: createAmenityInput.businessCardId },
+        });
+        businessCard.amenities.push(amenity);
+        await queryRunner.manager.save(businessCard);
+        await queryRunner.commitTransaction();
+      }
     } catch (error) {
       await queryRunner.rollbackTransaction();
+      caughtError = error;
     } finally {
       await queryRunner.release();
     }
 
-    if (isSuccess) return amenity;
+    if (!caughtError) return amenity;
+    if (caughtError instanceof HttpException) throw caughtError;
     throw new InternalServerErrorException('Failed to create amenity');
   }
 
@@ -115,7 +126,7 @@ export class AmenityService {
     await queryRunner.startTransaction();
 
     const amenity = await this.getAmenity(amenityId);
-    let isSuccess = false;
+    let caughtError: unknown;
 
     try {
       const personalizationInstance = await this.preloadPersonalization(
@@ -135,14 +146,15 @@ export class AmenityService {
 
       await queryRunner.manager.save(amenity);
       await queryRunner.commitTransaction();
-      isSuccess = true;
     } catch (error) {
       await queryRunner.rollbackTransaction();
+      caughtError = error;
     } finally {
       await queryRunner.release();
     }
 
-    if (isSuccess) return amenity;
+    if (!caughtError) return amenity;
+    if (caughtError instanceof HttpException) throw caughtError;
     throw new InternalServerErrorException('Failed to update amenity');
   }
 

@@ -3,9 +3,11 @@ import { BusinessCardPersonalizationEntity } from '@entities/business-card-p13n.
 import { BusinessCardEntity } from '@entities/business-card.entity';
 import { CompanyEntity } from '@entities/company.entity';
 import { UserEntity } from '@entities/user.entity';
+import { AmenityService } from '@modules/amenity/services/amenity.service';
 import { CompanyService } from '@modules/company/services/company.service';
 import { SocialMediaService } from '@modules/social-media/services/social-media.service';
 import {
+  HttpException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -24,9 +26,10 @@ export class BusinessCardService {
     private readonly businessCardRepository: Repository<BusinessCardEntity>,
     @InjectRepository(BusinessCardPersonalizationEntity)
     private readonly businessCardP13nRepository: Repository<BusinessCardPersonalizationEntity>,
-    private readonly dataSource: DataSource,
+    private readonly amenityService: AmenityService,
     private readonly companyService: CompanyService,
-    private readonly socialMediaService: SocialMediaService
+    private readonly socialMediaService: SocialMediaService,
+    private readonly dataSource: DataSource
   ) {}
 
   async getBusinessCards(paginationQuery: PaginationInput) {
@@ -84,6 +87,7 @@ export class BusinessCardService {
   ) {
     const {
       personalization,
+      amenities,
       companyId,
       company,
       socialMedia,
@@ -97,7 +101,7 @@ export class BusinessCardService {
     let businessCard: BusinessCardEntity;
     let cardCompany: CompanyEntity;
     let personalizationInstance: BusinessCardPersonalizationEntity;
-    let isSuccess = false;
+    let caughtError: unknown;
 
     try {
       businessCard = this.businessCardRepository.create(restBusinessCardInput);
@@ -111,6 +115,13 @@ export class BusinessCardService {
       }
       if (personalizationInstance) {
         businessCard.personalization = personalizationInstance;
+      }
+      if (amenities) {
+        businessCard.amenities = await Promise.all(
+          amenities.map((amenity) =>
+            this.amenityService.createAmenity(amenity, true)
+          )
+        );
       }
       if (companyId) {
         cardCompany = await this.companyService.getCompany(companyId);
@@ -131,14 +142,15 @@ export class BusinessCardService {
 
       await queryRunner.manager.save(user);
       await queryRunner.commitTransaction();
-      isSuccess = true;
     } catch (error) {
       await queryRunner.rollbackTransaction();
+      caughtError = error;
     } finally {
       await queryRunner.release();
     }
 
-    if (isSuccess) return businessCard;
+    if (!caughtError) return businessCard;
+    if (caughtError instanceof HttpException) throw caughtError;
     throw new InternalServerErrorException('Failed to create business card');
   }
 
@@ -148,6 +160,7 @@ export class BusinessCardService {
   ) {
     const {
       personalization,
+      amenities,
       companyId,
       company,
       socialMedia,
@@ -160,7 +173,7 @@ export class BusinessCardService {
 
     const businessCard = await this.getBusinessCard(businessCardId);
     let cardCompany: CompanyEntity;
-    let isSuccess = false;
+    let caughtError: unknown;
 
     try {
       const personalizationInstance = await this.preloadPersonalization(
@@ -176,6 +189,32 @@ export class BusinessCardService {
       if (personalizationInstance) {
         Object.assign(personalizationInstance, personalization);
         await queryRunner.manager.save(personalizationInstance);
+      }
+      if (amenities) {
+        const newAmenities = await Promise.all(
+          amenities.map(async (amenity) => {
+            const { id: amenityId, ...restAmenity } = amenity;
+            if (amenityId) {
+              const existingAmenity = businessCard.amenities.find(
+                (item) => item.id === amenityId
+              );
+              Object.assign(amenity, restAmenity);
+              return existingAmenity;
+            } else {
+              return this.amenityService.createAmenity(restAmenity, true);
+            }
+          })
+        );
+
+        await Promise.all(
+          businessCard.amenities.map((amenity) => {
+            if (newAmenities.find((item) => item.id === amenity.id))
+              return amenity;
+            else queryRunner.manager.remove(amenity);
+          })
+        );
+
+        businessCard.amenities = newAmenities;
       }
       if (companyId) {
         cardCompany = await this.companyService.getCompany(companyId);
@@ -196,14 +235,15 @@ export class BusinessCardService {
 
       await queryRunner.manager.save(businessCard);
       await queryRunner.commitTransaction();
-      isSuccess = true;
     } catch (error) {
       await queryRunner.rollbackTransaction();
+      caughtError = error;
     } finally {
       await queryRunner.release();
     }
 
-    if (isSuccess) return businessCard;
+    if (!caughtError) return businessCard;
+    if (caughtError instanceof HttpException) throw caughtError;
     throw new InternalServerErrorException('Failed to update business card');
   }
 

@@ -3,6 +3,7 @@ import { CompanyPersonalizationEntity } from '@entities/company-p13n.entity';
 import { CompanyEntity } from '@entities/company.entity';
 import {
   ConflictException,
+  HttpException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -72,7 +73,7 @@ export class CompanyService {
 
     let company: CompanyEntity;
     let personalizationInstance: CompanyPersonalizationEntity;
-    let isSuccess = false;
+    let caughtError: unknown;
 
     try {
       company = this.companyRepository.create(restCompanyInput);
@@ -89,14 +90,15 @@ export class CompanyService {
 
       await queryRunner.manager.save(company);
       await queryRunner.commitTransaction();
-      isSuccess = true;
     } catch (error) {
       await queryRunner.rollbackTransaction();
+      caughtError = error;
     } finally {
       await queryRunner.release();
     }
 
-    if (isSuccess) return company;
+    if (!caughtError) return company;
+    if (caughtError instanceof HttpException) throw caughtError;
     throw new InternalServerErrorException('Failed to create company');
   }
 
@@ -111,7 +113,7 @@ export class CompanyService {
     await queryRunner.startTransaction();
 
     const company = await this.getCompany(companyId);
-    let isSuccess = false;
+    let caughtError: unknown;
 
     try {
       const personalizationInstance = await this.preloadPersonalization(
@@ -131,14 +133,15 @@ export class CompanyService {
 
       await queryRunner.manager.save(company);
       await queryRunner.commitTransaction();
-      isSuccess = true;
     } catch (error) {
       await queryRunner.rollbackTransaction();
+      caughtError = error;
     } finally {
       await queryRunner.release();
     }
 
-    if (isSuccess) return company;
+    if (!caughtError) return company;
+    if (caughtError instanceof HttpException) throw caughtError;
     throw new InternalServerErrorException('Failed to update company');
   }
 
