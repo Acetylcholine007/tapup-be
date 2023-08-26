@@ -1,3 +1,4 @@
+import googleConfig from '@config/google.config';
 import jwtConfig from '@config/jwt.config';
 import { UserEntity } from '@entities/user.entity';
 import { CryptoService } from '@modules/crypto/services/crypto.service';
@@ -7,13 +8,17 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
+import { google } from 'googleapis';
+import { Profile } from 'passport-google-oauth20';
 import {
   AccessTokenPayload,
   RefreshTokenPayload,
 } from 'src/data/interfaces/auth.interface';
+import { OAuthStateInput } from '../dto/input/oauth-state.input';
 import { RegisterLocalInput } from '../dto/input/register-local.input';
 import { TokenOutput } from '../dto/output/token.output';
 
@@ -24,6 +29,8 @@ export class AuthService {
   constructor(
     @Inject(jwtConfig.KEY)
     private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
+    @Inject(googleConfig.KEY)
+    private readonly googleConfiguration: ConfigType<typeof googleConfig>,
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly cryptoService: CryptoService
@@ -35,13 +42,51 @@ export class AuthService {
     };
   }
 
-  async validateUser(email: string, password: string) {
+  createOAuthClient() {
+    const oauth2Client = new google.auth.OAuth2(
+      this.googleConfiguration.clientId,
+      this.googleConfiguration.secret,
+      this.googleConfiguration.callback
+    );
+    return oauth2Client;
+  }
+
+  async validateLocal(email: string, password: string): Promise<UserEntity> {
     const user = await this.userService.getUser(email, 'email');
 
     if (user && (await this.cryptoService.compare(password, user.password))) {
       return user;
     }
-    return null;
+    throw new UnauthorizedException();
+  }
+
+  async validateGoogle(
+    accessToken: string,
+    refreshToken: string,
+    profile: Profile
+  ): Promise<UserEntity> {
+    const {
+      name: { familyName, givenName },
+      emails: [{ value: email }],
+      photos: [{ value: profileUrl }],
+      id,
+    } = profile;
+
+    try {
+      return await this.userService.getUser(email, 'email');
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        const user = await this.userService.createUser({
+          email,
+          googleId: id,
+          firstName: givenName,
+          lastName: familyName,
+          profileUrl: profileUrl,
+        });
+        return user;
+      }
+      throw new UnauthorizedException();
+    }
   }
 
   async signToken<T>(userId: string, expiresIn: number, payload?: T) {
@@ -78,8 +123,16 @@ export class AuthService {
     return this.generateTokens(user);
   }
 
-  async signInLocal(user: UserEntity): Promise<TokenOutput> {
-    return await this.generateTokens(user);
+  async signInGoogleUrl(oAuthStateInput: OAuthStateInput) {
+    return this.createOAuthClient().generateAuthUrl({
+      access_type: 'offline',
+      scope: ['profile', 'email', 'openid'],
+      state: JSON.stringify(oAuthStateInput),
+    });
+  }
+
+  async signIn(user: UserEntity): Promise<TokenOutput> {
+    return this.generateTokens(user);
   }
 
   async registerLocal(registerInput: RegisterLocalInput): Promise<TokenOutput> {

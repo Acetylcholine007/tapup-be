@@ -26,8 +26,12 @@ export class UserEntity {
   email: string;
 
   @Exclude()
-  @Column()
-  password: string;
+  @Column({ nullable: true })
+  password?: string;
+
+  @Index()
+  @Column({ nullable: true })
+  googleId?: string;
 
   @Column({ nullable: true })
   profileUrl?: string;
