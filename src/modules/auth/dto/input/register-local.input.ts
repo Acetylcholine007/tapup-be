@@ -1,3 +1,10 @@
-import { CreateUserInput } from '@modules/user/dtos/input/create-user.input';
+import { BaseCreateUserInput } from '@modules/user/dtos/input/base-create-user.input';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsString } from 'class-validator';
 
-export class RegisterLocalInput extends CreateUserInput {}
+export class RegisterLocalInput extends BaseCreateUserInput {
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  password: string;
+}
