@@ -1,10 +1,12 @@
 import { CurrentUser } from '@common/decorators/current-user.decorator';
 import { Public } from '@common/decorators/public.decorator';
 import { RedirectUrl } from '@common/decorators/redirectUrl.decorator';
+import { PasswordResetExceptionFilter } from '@common/filters/password-reset-exception/password-reset-exception.filter';
 import { VerifyUserExceptionFilter } from '@common/filters/verify-user-exception/verify-user-exception.filter';
 import { GoogleAuthGuard } from '@common/guards/google-auth.guard';
 import { LocalAuthGuard } from '@common/guards/local-auth.guard';
 import { RefreshTokenGuard } from '@common/guards/refresh-token.guard';
+import { ResetTokenGuard } from '@common/guards/reset-token.guard';
 import { VerifyTokenGuard } from '@common/guards/verify-token.guard';
 import { UserEntity } from '@entities/user.entity';
 import { CryptoService } from '@modules/crypto/services/crypto.service';
@@ -14,6 +16,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Patch,
   Post,
   Query,
   Req,
@@ -25,8 +28,10 @@ import { ConfigService } from '@nestjs/config';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { OAuthStateInput } from '../dto/input/oauth-state.input';
+import { PasswordResetInput } from '../dto/input/password-reset.input';
 import { RefreshTokenInput } from '../dto/input/refresh-token.input';
 import { RegisterLocalInput } from '../dto/input/register-local.input';
+import { SendPasswordResetInput } from '../dto/input/send-password-reset.input';
 import { SendVerificationInput } from '../dto/input/send-verification.input';
 import { SignInLocalInput } from '../dto/input/sign-in-local.input';
 import { VerifyTokenInput } from '../dto/input/verify-token.input';
@@ -133,5 +138,22 @@ export class AuthController {
   ) {
     await this.authService.verifyAccount(currentUser);
     return res.status(200).redirect(redirectTo);
+  }
+
+  @Public()
+  @Post('send-password-reset')
+  sendPasswordReset(@Body() sendPasswordResetInput: SendPasswordResetInput) {
+    return this.authService.sendPasswordResetEmail(sendPasswordResetInput);
+  }
+
+  @Public()
+  @UseGuards(ResetTokenGuard)
+  @Patch('reset-password')
+  @UseFilters(PasswordResetExceptionFilter)
+  async resetPassword(
+    @CurrentUser() currentUser: UserEntity,
+    @Body() passwordResetInput: PasswordResetInput
+  ) {
+    return this.authService.resetPassword(currentUser, passwordResetInput);
   }
 }

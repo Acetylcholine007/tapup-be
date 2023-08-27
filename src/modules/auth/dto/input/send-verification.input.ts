@@ -1,10 +1,3 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, IsUrl } from 'class-validator';
+import { RedirectionInput } from '@common/dto/input/redirection.input';
 
-export class SendVerificationInput {
-  @ApiProperty()
-  @IsOptional()
-  @IsString()
-  @IsUrl()
-  destination?: string;
-}
+export class SendVerificationInput extends RedirectionInput {}

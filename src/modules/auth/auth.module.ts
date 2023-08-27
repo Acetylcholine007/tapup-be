@@ -3,6 +3,7 @@ import { AccessTokenStrategy } from '@common/strategies/access-token.strategy';
 import { GoogleStrategy } from '@common/strategies/google.strategy';
 import { LocalStrategy } from '@common/strategies/local.strategy';
 import { RefreshTokenStrategy } from '@common/strategies/refresh-token.strategy';
+import { ResetTokenStrategy } from '@common/strategies/reset-token.strategy';
 import { VerifyTokenStrategy } from '@common/strategies/verify-token.strategy';
 import googleConfig from '@config/google.config';
 import jwtConfig from '@config/jwt.config';
@@ -33,6 +34,7 @@ import { AuthService } from './services/auth.service';
     AccessTokenStrategy,
     RefreshTokenStrategy,
     VerifyTokenStrategy,
+    ResetTokenStrategy,
     GoogleStrategy,
     VerifyUserExceptionFilter,
   ],

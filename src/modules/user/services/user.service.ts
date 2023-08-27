@@ -49,6 +49,11 @@ export class UserService {
     return this.userRepository.save(user);
   }
 
+  async updateUserPassword(user: UserEntity, newPassword: string) {
+    user.password = newPassword;
+    return this.userRepository.save(user);
+  }
+
   async deleteUser(id: string) {
     const user = await this.getUser(id);
     return this.userRepository.remove(user);

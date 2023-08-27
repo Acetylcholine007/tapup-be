@@ -1,3 +1,4 @@
+import { MessageOutput } from '@common/dto/output/message.input';
 import googleConfig from '@config/google.config';
 import jwtConfig from '@config/jwt.config';
 import { UserEntity } from '@entities/user.entity';
@@ -5,6 +6,7 @@ import { CryptoService } from '@modules/crypto/services/crypto.service';
 import { MailService } from '@modules/mail/services/mail.service';
 import { UserService } from '@modules/user/services/user.service';
 import {
+  BadRequestException,
   ConflictException,
   Inject,
   Injectable,
@@ -16,10 +18,11 @@ import { ConfigService, ConfigType } from '@nestjs/config';
 import { google } from 'googleapis';
 import { Profile } from 'passport-google-oauth20';
 import { OAuthStateInput } from '../dto/input/oauth-state.input';
+import { PasswordResetInput } from '../dto/input/password-reset.input';
 import { RegisterLocalInput } from '../dto/input/register-local.input';
+import { SendPasswordResetInput } from '../dto/input/send-password-reset.input';
 import { SendVerificationInput } from '../dto/input/send-verification.input';
 import { TokenOutput } from '../dto/output/token.output';
-import { VerifyOutput } from '../dto/output/verify.output';
 
 @Injectable()
 export class AuthService {
@@ -130,7 +133,7 @@ export class AuthService {
   async sendVerificationEmail(
     user: UserEntity,
     sendVerificationInput: SendVerificationInput
-  ): Promise<VerifyOutput> {
+  ): Promise<MessageOutput> {
     const verifyToken = await this.cryptoService.signToken(
       user.id,
       this.jwtConfiguration.verifyTokenTtl,
@@ -160,5 +163,42 @@ export class AuthService {
       );
     if (user.isVerified) return user;
     return this.userService.verifyUser(user);
+  }
+
+  async sendPasswordResetEmail(
+    sendResetPasswordInput: SendPasswordResetInput
+  ): Promise<MessageOutput> {
+    const { email } = sendResetPasswordInput;
+    const resetToken = await this.cryptoService.signSublessToken(
+      this.jwtConfiguration.resetTokenTtl,
+      {
+        email,
+        reset: true,
+      }
+    );
+    await this.mailService.sendPasswordResetEmail(email, resetToken);
+    return { message: `Password reset link sent to ${email}` };
+  }
+
+  async resetPassword(
+    user: UserEntity,
+    passwordResetInput: PasswordResetInput
+  ): Promise<MessageOutput> {
+    //TODO: Add proper redirection for this in the future
+    if (!user.password)
+      throw new MethodNotAllowedException(
+        'Password reset is only allowed for locally registered accounts. If you are using social account, reset your password through your provider and re-sign in to the app.'
+      );
+
+    if (passwordResetInput.newPassword !== passwordResetInput.confirmPassword)
+      throw new BadRequestException(
+        'New password and confirm password mismatched.'
+      );
+
+    const hashedPassword = await this.cryptoService.hash(
+      passwordResetInput.newPassword
+    );
+    await this.userService.updateUserPassword(user, hashedPassword);
+    return { message: 'Your password was reset.' };
   }
 }
