@@ -25,7 +25,6 @@ export class MailService {
       return await this.mailerService.sendMail({
         to: email,
         subject: 'Tap Up Account Verification',
-        text: 'Verify Now',
         template: 'verify-email',
         context: {
           duration: moment
@@ -41,6 +40,29 @@ export class MailService {
       throw new InternalServerErrorException(
         'Failed to send email verification'
       );
+    }
+  }
+
+  async sendPasswordResetEmail(email: string, resetToken: string) {
+    try {
+      return await this.mailerService.sendMail({
+        to: email,
+        subject: 'Tap Up Password Reset',
+        template: 'reset-password',
+        context: {
+          duration: moment
+            .duration(this.jwtConfiguration.resetTokenTtl, 's')
+            .minutes(),
+          resetPasswordLink: `${this.configService.get<string>(
+            'frontendUrl'
+          )}${this.configService.get<string>(
+            'passwordResetPath'
+          )}?resetToken=${resetToken}`,
+        },
+      });
+    } catch (error) {
+      this.logger.error(error);
+      throw new InternalServerErrorException('Failed to send password reset');
     }
   }
 }

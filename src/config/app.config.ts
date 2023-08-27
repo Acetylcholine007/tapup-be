@@ -5,5 +5,6 @@ export default () => ({
   apiVersion: process.env.API_VERSION,
   frontendUrl: process.env.URL_FRONTEND,
   backendUrl: process.env.URL_BACKEND,
+  passwordResetPath: process.env.PASSWORD_RESET_PATH,
   timeoutThreshold: parseInt(process.env.TIMEOUT_THRESHOLD ?? '10000', 10),
 });

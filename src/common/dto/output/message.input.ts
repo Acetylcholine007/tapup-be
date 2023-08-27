@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class VerifyOutput {
+export class MessageOutput {
   @ApiProperty()
   message: string;
 }

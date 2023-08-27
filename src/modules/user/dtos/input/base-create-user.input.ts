@@ -1,6 +1,14 @@
 import { Role } from '@enums/user.enum';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export abstract class BaseCreateUserInput {
   @ApiProperty()
@@ -16,11 +24,13 @@ export abstract class BaseCreateUserInput {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
+  @IsEmail()
   email: string;
 
   @ApiProperty()
   @IsOptional()
-  @IsString()
+  @MinLength(8)
+  @MaxLength(16)
   password?: string;
 
   @ApiProperty({ nullable: true })

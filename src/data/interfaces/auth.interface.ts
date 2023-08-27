@@ -14,3 +14,8 @@ export interface VerifyTokenPayload {
   verify: true;
   destination: string;
 }
+
+export interface ResetTokenPayload {
+  email: string;
+  reset: true;
+}

@@ -34,6 +34,13 @@ export class CryptoService {
     return compare(data, encrypted);
   }
 
+  async signSublessToken<T extends object>(expiresIn: number, payload?: T) {
+    return this.jwtService.signAsync(payload, {
+      ...this.jwtSignOptions,
+      expiresIn,
+    });
+  }
+
   async signToken<T>(userId: string, expiresIn: number, payload?: T) {
     return this.jwtService.signAsync(
       { sub: userId, ...payload },
