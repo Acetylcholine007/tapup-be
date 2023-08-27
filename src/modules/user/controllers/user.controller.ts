@@ -1,5 +1,7 @@
+import { CurrentUser } from '@common/decorators/current-user.decorator';
 import { Roles } from '@common/decorators/roles.decorator';
 import { PaginationInput } from '@common/dto/input/pagination.input';
+import { UserEntity } from '@entities/user.entity';
 import { Role } from '@enums/user.enum';
 import {
   Body,
@@ -25,6 +27,11 @@ export class UserController {
   @Get()
   getUsers(@Query() paginationQuery: PaginationInput) {
     return this.userService.getUsers(paginationQuery);
+  }
+
+  @Get('/me')
+  getMyInfo(@CurrentUser() currentUser: UserEntity) {
+    return this.userService.getUser(currentUser.id);
   }
 
   @Get('/:userId')
