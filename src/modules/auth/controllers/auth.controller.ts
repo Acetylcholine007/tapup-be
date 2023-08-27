@@ -27,10 +27,11 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
+import { ChangePasswordInput } from '../dto/input/change-password.input';
 import { OAuthStateInput } from '../dto/input/oauth-state.input';
-import { PasswordResetInput } from '../dto/input/password-reset.input';
 import { RefreshTokenInput } from '../dto/input/refresh-token.input';
 import { RegisterLocalInput } from '../dto/input/register-local.input';
+import { ResetPasswordInput } from '../dto/input/reset-password.input';
 import { SendPasswordResetInput } from '../dto/input/send-password-reset.input';
 import { SendVerificationInput } from '../dto/input/send-verification.input';
 import { SignInLocalInput } from '../dto/input/sign-in-local.input';
@@ -152,8 +153,17 @@ export class AuthController {
   @UseFilters(PasswordResetExceptionFilter)
   async resetPassword(
     @CurrentUser() currentUser: UserEntity,
-    @Body() passwordResetInput: PasswordResetInput
+    @Body() passwordResetInput: ResetPasswordInput
   ) {
-    return this.authService.resetPassword(currentUser, passwordResetInput);
+    return this.authService.changePassword(currentUser, passwordResetInput);
+  }
+
+  @ApiBearerAuth()
+  @Patch('change-password')
+  async changePassword(
+    @CurrentUser() currentUser: UserEntity,
+    @Body() changePasswordInput: ChangePasswordInput
+  ) {
+    return this.authService.changePassword(currentUser, changePasswordInput);
   }
 }
