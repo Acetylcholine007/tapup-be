@@ -29,6 +29,21 @@ export class BusinessCardPersonalizationEntity {
   @Column({ nullable: true })
   borderColor?: string;
 
+  @Column({ nullable: true })
+  companyTextColor?: string;
+
+  @Column({ nullable: true })
+  testimonialBackgroundColor?: string;
+
+  @Column({ nullable: true })
+  testimonialTextColor?: string;
+
+  @Column({ nullable: true })
+  testimonialBorderRadius?: string;
+
+  @Column({ nullable: true })
+  testimonialBorderColor?: string;
+
   @OneToOne(
     () => BusinessCardEntity,
     (businessCard) => businessCard.personalization
