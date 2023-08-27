@@ -8,6 +8,7 @@ import { UserService } from '@modules/user/services/user.service';
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Inject,
   Injectable,
   MethodNotAllowedException,
@@ -17,9 +18,10 @@ import {
 import { ConfigService, ConfigType } from '@nestjs/config';
 import { google } from 'googleapis';
 import { Profile } from 'passport-google-oauth20';
+import { ChangePasswordInput } from '../dto/input/change-password.input';
 import { OAuthStateInput } from '../dto/input/oauth-state.input';
-import { PasswordResetInput } from '../dto/input/password-reset.input';
 import { RegisterLocalInput } from '../dto/input/register-local.input';
+import { ResetPasswordInput } from '../dto/input/reset-password.input';
 import { SendPasswordResetInput } from '../dto/input/send-password-reset.input';
 import { SendVerificationInput } from '../dto/input/send-verification.input';
 import { TokenOutput } from '../dto/output/token.output';
@@ -180,25 +182,39 @@ export class AuthService {
     return { message: `Password reset link sent to ${email}` };
   }
 
-  async resetPassword(
+  async changePassword(
     user: UserEntity,
-    passwordResetInput: PasswordResetInput
-  ): Promise<MessageOutput> {
+    passwordSet: ResetPasswordInput | ChangePasswordInput
+  ) {
+    const { newPassword, confirmPassword } = passwordSet;
+
     //TODO: Add proper redirection for this in the future
     if (!user.password)
       throw new MethodNotAllowedException(
         'Password reset is only allowed for locally registered accounts. If you are using social account, reset your password through your provider and re-sign in to the app.'
       );
 
-    if (passwordResetInput.newPassword !== passwordResetInput.confirmPassword)
+    if (newPassword !== confirmPassword)
       throw new BadRequestException(
         'New password and confirm password mismatched.'
       );
 
-    const hashedPassword = await this.cryptoService.hash(
-      passwordResetInput.newPassword
-    );
+    if (passwordSet instanceof ChangePasswordInput) {
+      const isOldPasswordValid = await this.cryptoService.compare(
+        passwordSet.oldPassword,
+        user.password
+      );
+
+      if (!isOldPasswordValid)
+        throw new ForbiddenException('Invalid old password');
+    }
+
+    const hashedPassword = await this.cryptoService.hash(newPassword);
     await this.userService.updateUserPassword(user, hashedPassword);
-    return { message: 'Your password was reset.' };
+    return {
+      message: `Your password was ${
+        passwordSet instanceof ChangePasswordInput ? 'changed' : 'reset'
+      }.`,
+    };
   }
 }

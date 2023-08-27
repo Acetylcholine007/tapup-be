@@ -1,12 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsJWT, IsNotEmpty, MaxLength, MinLength } from 'class-validator';
+import { IsNotEmpty, MaxLength, MinLength } from 'class-validator';
 
-export class PasswordResetInput {
-  @ApiProperty()
-  @IsNotEmpty()
-  @IsJWT()
-  resetToken: string;
-
+export abstract class BaseChangePasswordInput {
   @ApiProperty()
   @IsNotEmpty()
   @MinLength(8)
