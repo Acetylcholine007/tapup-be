@@ -34,4 +34,29 @@ export class UpdateBusinessCardP13NInput
   @IsOptional()
   @IsString()
   borderColor?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  companyTextColor?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  testimonialBackgroundColor?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  testimonialTextColor?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  testimonialBorderRadius?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  testimonialBorderColor?: string;
 }
