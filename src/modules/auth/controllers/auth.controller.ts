@@ -1,9 +1,13 @@
 import { CurrentUser } from '@common/decorators/current-user.decorator';
 import { Public } from '@common/decorators/public.decorator';
+import { RedirectUrl } from '@common/decorators/redirectUrl.decorator';
+import { VerifyUserExceptionFilter } from '@common/filters/verify-user-exception/verify-user-exception.filter';
 import { GoogleAuthGuard } from '@common/guards/google-auth.guard';
 import { LocalAuthGuard } from '@common/guards/local-auth.guard';
 import { RefreshTokenGuard } from '@common/guards/refresh-token.guard';
+import { VerifyTokenGuard } from '@common/guards/verify-token.guard';
 import { UserEntity } from '@entities/user.entity';
+import { CryptoService } from '@modules/crypto/services/crypto.service';
 import {
   Body,
   Controller,
@@ -11,17 +15,21 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Query,
   Req,
   Res,
+  UseFilters,
   UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { OAuthStateInput } from '../dto/input/oauth-state.input';
 import { RefreshTokenInput } from '../dto/input/refresh-token.input';
 import { RegisterLocalInput } from '../dto/input/register-local.input';
-import { SignInLocalInput } from '../dto/input/signin-local.input';
+import { SendVerificationInput } from '../dto/input/send-verification.input';
+import { SignInLocalInput } from '../dto/input/sign-in-local.input';
+import { VerifyTokenInput } from '../dto/input/verify-token.input';
 import { AuthService } from '../services/auth.service';
 
 @ApiTags('Auth')
@@ -29,6 +37,7 @@ import { AuthService } from '../services/auth.service';
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
+    private readonly cryptoService: CryptoService,
     private readonly configService: ConfigService
   ) {}
 
@@ -74,6 +83,7 @@ export class AuthController {
   @Post('sign-in-local')
   async signInLocal(
     @CurrentUser() currentUser: UserEntity,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Body() _body: SignInLocalInput
   ) {
     return this.authService.signIn(currentUser);
@@ -91,8 +101,37 @@ export class AuthController {
   @Post('refresh-tokens')
   refreshTokens(
     @CurrentUser() currentUser: UserEntity,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Body() _refreshTokenInput: RefreshTokenInput
   ) {
-    return this.authService.refreshTokens(currentUser);
+    return this.cryptoService.generateTokens(currentUser);
+  }
+
+  @ApiBearerAuth()
+  @Post('send-verification')
+  sendVerification(
+    @CurrentUser() currentUser: UserEntity,
+    @Body() sendVerificationInput: SendVerificationInput
+  ) {
+    return this.authService.sendVerificationEmail(
+      currentUser,
+      sendVerificationInput
+    );
+  }
+
+  @Public()
+  @UseGuards(VerifyTokenGuard)
+  @HttpCode(HttpStatus.OK)
+  @Get('verify-account')
+  @UseFilters(VerifyUserExceptionFilter)
+  async verifyAccount(
+    @RedirectUrl() redirectTo: string,
+    @CurrentUser() currentUser: UserEntity,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    @Query() _verifyTokenInput: VerifyTokenInput,
+    @Res() res: Response
+  ) {
+    await this.authService.verifyAccount(currentUser);
+    return res.status(200).redirect(redirectTo);
   }
 }

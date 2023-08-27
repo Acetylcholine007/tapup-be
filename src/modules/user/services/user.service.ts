@@ -44,6 +44,11 @@ export class UserService {
     return this.userRepository.save(user);
   }
 
+  async verifyUser(user: UserEntity) {
+    user.isVerified = true;
+    return this.userRepository.save(user);
+  }
+
   async deleteUser(id: string) {
     const user = await this.getUser(id);
     return this.userRepository.remove(user);

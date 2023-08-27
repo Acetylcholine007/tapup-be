@@ -2,45 +2,37 @@ import googleConfig from '@config/google.config';
 import jwtConfig from '@config/jwt.config';
 import { UserEntity } from '@entities/user.entity';
 import { CryptoService } from '@modules/crypto/services/crypto.service';
+import { MailService } from '@modules/mail/services/mail.service';
 import { UserService } from '@modules/user/services/user.service';
 import {
   ConflictException,
   Inject,
   Injectable,
+  MethodNotAllowedException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigType } from '@nestjs/config';
-import { JwtService, JwtSignOptions } from '@nestjs/jwt';
+import { ConfigService, ConfigType } from '@nestjs/config';
 import { google } from 'googleapis';
 import { Profile } from 'passport-google-oauth20';
-import {
-  AccessTokenPayload,
-  RefreshTokenPayload,
-} from 'src/data/interfaces/auth.interface';
 import { OAuthStateInput } from '../dto/input/oauth-state.input';
 import { RegisterLocalInput } from '../dto/input/register-local.input';
+import { SendVerificationInput } from '../dto/input/send-verification.input';
 import { TokenOutput } from '../dto/output/token.output';
+import { VerifyOutput } from '../dto/output/verify.output';
 
 @Injectable()
 export class AuthService {
-  private readonly jwtSignOptions: JwtSignOptions;
-
   constructor(
     @Inject(jwtConfig.KEY)
     private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
     @Inject(googleConfig.KEY)
     private readonly googleConfiguration: ConfigType<typeof googleConfig>,
+    private readonly configService: ConfigService,
     private readonly userService: UserService,
-    private readonly jwtService: JwtService,
-    private readonly cryptoService: CryptoService
-  ) {
-    this.jwtSignOptions = {
-      audience: jwtConfiguration.audience,
-      issuer: jwtConfiguration.issuer,
-      secret: jwtConfiguration.secret,
-    };
-  }
+    private readonly cryptoService: CryptoService,
+    private readonly mailService: MailService
+  ) {}
 
   createOAuthClient() {
     const oauth2Client = new google.auth.OAuth2(
@@ -67,13 +59,20 @@ export class AuthService {
   ): Promise<UserEntity> {
     const {
       name: { familyName, givenName },
-      emails: [{ value: email }],
+      emails: [{ value: email, verified }],
       photos: [{ value: profileUrl }],
       id,
     } = profile;
 
+    const isVerified =
+      typeof verified === 'boolean'
+        ? (verified as boolean)
+        : verified === 'true';
+
     try {
-      return await this.userService.getUser(email, 'email');
+      const user = await this.userService.getUser(email, 'email');
+      if (user.isVerified) return user;
+      return this.userService.verifyUser(user);
     } catch (error) {
       if (error instanceof NotFoundException) {
         const user = await this.userService.createUser({
@@ -82,45 +81,12 @@ export class AuthService {
           firstName: givenName,
           lastName: familyName,
           profileUrl: profileUrl,
+          isVerified,
         });
         return user;
       }
       throw new UnauthorizedException();
     }
-  }
-
-  async signToken<T>(userId: string, expiresIn: number, payload?: T) {
-    return this.jwtService.signAsync(
-      { sub: userId, ...payload },
-      { ...this.jwtSignOptions, expiresIn }
-    );
-  }
-
-  async generateTokens(user: UserEntity) {
-    const [accessToken, refreshToken] = await Promise.all([
-      this.signToken<Partial<AccessTokenPayload>>(
-        user.id,
-        this.jwtConfiguration.accessTokenTtl,
-        {
-          email: user.email,
-        }
-      ),
-      this.signToken<Partial<RefreshTokenPayload>>(
-        user.id,
-        this.jwtConfiguration.refreshTokenTtl,
-        {
-          refresh: true,
-        }
-      ),
-    ]);
-    return {
-      accessToken,
-      refreshToken,
-    };
-  }
-
-  async refreshTokens(user: UserEntity) {
-    return this.generateTokens(user);
   }
 
   async signInGoogleUrl(oAuthStateInput: OAuthStateInput) {
@@ -132,7 +98,7 @@ export class AuthService {
   }
 
   async signIn(user: UserEntity): Promise<TokenOutput> {
-    return this.generateTokens(user);
+    return this.cryptoService.generateTokens(user);
   }
 
   async registerLocal(registerInput: RegisterLocalInput): Promise<TokenOutput> {
@@ -158,6 +124,41 @@ export class AuthService {
       password: hashedPassword,
     });
 
-    return this.generateTokens(user);
+    return this.cryptoService.generateTokens(user);
+  }
+
+  async sendVerificationEmail(
+    user: UserEntity,
+    sendVerificationInput: SendVerificationInput
+  ): Promise<VerifyOutput> {
+    const verifyToken = await this.cryptoService.signToken(
+      user.id,
+      this.jwtConfiguration.verifyTokenTtl,
+      {
+        email: user.email,
+        verify: true,
+        destination:
+          sendVerificationInput.destination ??
+          this.configService.get<string>('frontendUrl'),
+      }
+    );
+    if (user.isVerified)
+      throw new MethodNotAllowedException('Your account is already verified.');
+    if (!user.password)
+      throw new MethodNotAllowedException(
+        'Sending verification is only allowed for locally registered accounts. If you are using social account, verify your account through your provider and re sign in to the app.'
+      );
+    await this.mailService.sendVerificationEmail(user.email, verifyToken);
+    return { message: `Account verification link sent to ${user.email}` };
+  }
+
+  async verifyAccount(user: UserEntity) {
+    //TODO: Add proper redirection for this in the future
+    if (!user.password)
+      throw new MethodNotAllowedException(
+        'Email verification is only allowed for locally registered accounts. If you are using social account, verify your account through your provider and re sign in to the app.'
+      );
+    if (user.isVerified) return user;
+    return this.userService.verifyUser(user);
   }
 }
