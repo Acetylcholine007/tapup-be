@@ -17,17 +17,11 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       clientSecret: googleConfiguration.secret,
       callbackURL: googleConfiguration.callback,
       scope: ['profile', 'email', 'openid'],
-      passReqToCallback: true,
       accessType: 'offline',
     });
   }
 
-  async validate(
-    req: any,
-    accessToken: string,
-    refreshToken: string,
-    profile: Profile
-  ) {
+  async validate(accessToken: string, refreshToken: string, profile: Profile) {
     return this.authService.validateGoogle(accessToken, refreshToken, profile);
   }
 }

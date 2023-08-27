@@ -5,7 +5,6 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { join } from 'path';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap', { timestamp: true });
@@ -14,8 +13,6 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
   app.enableCors(corsConfig);
-  app.setBaseViewsDir(join(__dirname, '..', 'views'));
-  app.setViewEngine('ejs');
 
   if (configService.get('environment') !== 'production') {
     setupSwagger(app, configService);

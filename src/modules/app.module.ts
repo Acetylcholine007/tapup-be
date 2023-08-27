@@ -4,6 +4,7 @@ import { RolesGuard } from '@common/guards/roles.guard';
 import { TimeoutInterceptor } from '@common/interceptors/timeout/timeout.interceptor';
 import appConfig from '@config/app.config';
 import dbConfig from '@config/db.config';
+
 import {
   ClassSerializerInterceptor,
   Module,
@@ -14,14 +15,15 @@ import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
 import { join } from 'path';
+import { AmenityModule } from './amenity/amenity.module';
 import { AuthModule } from './auth/auth.module';
 import { BusinessCardModule } from './business-card/business-card.module';
-import { CryptoModule } from './crypto/crypto.module';
-import { UserModule } from './user/user.module';
-import { AmenityModule } from './amenity/amenity.module';
 import { CompanyModule } from './company/company.module';
+import { CryptoModule } from './crypto/crypto.module';
+import { MailModule } from './mail/mail.module';
 import { SocialMediaModule } from './social-media/social-media.module';
 import { TestimonialModule } from './testimonial/testimonial.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -51,6 +53,7 @@ import { TestimonialModule } from './testimonial/testimonial.module';
     CompanyModule,
     SocialMediaModule,
     TestimonialModule,
+    MailModule,
   ],
   providers: [
     {

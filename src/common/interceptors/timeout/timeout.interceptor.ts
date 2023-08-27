@@ -5,6 +5,7 @@ import {
   NestInterceptor,
   RequestTimeoutException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
   Observable,
   TimeoutError,
@@ -15,9 +16,11 @@ import {
 
 @Injectable()
 export class TimeoutInterceptor implements NestInterceptor {
+  constructor(private readonly configService: ConfigService) {}
+
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
-      timeout(3000),
+      timeout(this.configService.get<number>('timeoutThreshold')),
       catchError((err) => {
         if (err instanceof TimeoutError) {
           return throwError(() => new RequestTimeoutException());

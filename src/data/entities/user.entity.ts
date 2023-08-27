@@ -33,6 +33,9 @@ export class UserEntity {
   @Column({ nullable: true })
   googleId?: string;
 
+  @Column({ default: false })
+  isVerified: boolean;
+
   @Column({ nullable: true })
   profileUrl?: string;
 

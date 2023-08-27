@@ -1,6 +1,6 @@
 import { Role } from '@enums/user.enum';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class UpdateUserInput {
   @ApiProperty({ nullable: true })
@@ -42,4 +42,9 @@ export class UpdateUserInput {
   @IsOptional()
   @IsEnum(Role)
   role?: Role;
+
+  @ApiProperty({ nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  isVerified?: boolean;
 }

@@ -8,7 +8,7 @@
     "assets": [
       { "include": "i18n/**/*", "watchAssets": true },
       {
-        "include": "views/**/*.ejs",
+        "include": "templates/**/*.hbs",
         "watchAssets": true
       }
     ]
