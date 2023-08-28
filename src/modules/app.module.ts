@@ -24,6 +24,7 @@ import { MailModule } from './mail/mail.module';
 import { SocialMediaModule } from './social-media/social-media.module';
 import { TestimonialModule } from './testimonial/testimonial.module';
 import { UserModule } from './user/user.module';
+import { FileModule } from './file/file.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { UserModule } from './user/user.module';
     SocialMediaModule,
     TestimonialModule,
     MailModule,
+    FileModule,
   ],
   providers: [
     {
