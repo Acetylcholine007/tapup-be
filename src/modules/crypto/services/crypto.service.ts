@@ -1,9 +1,12 @@
+import cryptoConfig from '@config/crypto.config';
 import jwtConfig from '@config/jwt.config';
 import { UserEntity } from '@entities/user.entity';
 import { Inject, Injectable } from '@nestjs/common';
-import { ConfigType } from '@nestjs/config';
+import { ConfigService, ConfigType } from '@nestjs/config';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { compare, genSalt, hash } from 'bcrypt';
+import * as crypto from 'crypto';
+import { authenticator } from 'otplib';
 import {
   AccessTokenPayload,
   RefreshTokenPayload,
@@ -16,6 +19,9 @@ export class CryptoService {
   constructor(
     @Inject(jwtConfig.KEY)
     private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
+    @Inject(cryptoConfig.KEY)
+    private readonly cryptoConfiguration: ConfigType<typeof cryptoConfig>,
+    private readonly configService: ConfigService,
     private readonly jwtService: JwtService
   ) {
     this.jwtSignOptions = {
@@ -69,5 +75,41 @@ export class CryptoService {
       accessToken,
       refreshToken,
     };
+  }
+
+  async generateTFASecret(email: string) {
+    const secret = authenticator.generateSecret();
+    const appName = this.configService.get<string>('tfaAppName');
+    const uri = authenticator.keyuri(email, appName, secret);
+    return { uri, secret };
+  }
+
+  async encryptSymmetric(data: string) {
+    const translatedKey = Buffer.from(
+      this.cryptoConfiguration.symmetricKey,
+      'base64'
+    );
+    const ivBuffer = Buffer.from(this.cryptoConfiguration.iv, 'base64');
+
+    const cipher = crypto.createCipheriv('aes256', translatedKey, ivBuffer);
+    return cipher.update(data, 'utf8', 'base64') + cipher.final('base64');
+  }
+
+  async decryptSymmetric(data: string) {
+    const translatedKey = Buffer.from(
+      this.cryptoConfiguration.symmetricKey,
+      'base64'
+    );
+    const ivBuffer = Buffer.from(this.cryptoConfiguration.iv, 'base64');
+
+    const decipher = crypto.createDecipheriv('aes256', translatedKey, ivBuffer);
+    return decipher.update(data, 'base64', 'utf-8') + decipher.final('utf8');
+  }
+
+  async verifyCode(code: string, secret: string) {
+    return authenticator.verify({
+      token: code,
+      secret,
+    });
   }
 }

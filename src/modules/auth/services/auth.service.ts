@@ -217,4 +217,13 @@ export class AuthService {
       }.`,
     };
   }
+
+  async enableTfa(user: UserEntity) {
+    const tfaOutput = await this.cryptoService.generateTFASecret(user.email);
+    const encryptedSecret = await this.cryptoService.encryptSymmetric(
+      tfaOutput.secret
+    );
+    await this.userService.enableTfa(user, encryptedSecret);
+    return tfaOutput;
+  }
 }

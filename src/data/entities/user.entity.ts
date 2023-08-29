@@ -38,6 +38,16 @@ export class UserEntity {
   @Column({ default: false })
   isVerified: boolean;
 
+  @Exclude()
+  @ApiHideProperty()
+  @Column({ default: false })
+  isTfaEnabled: boolean;
+
+  @Exclude()
+  @ApiHideProperty()
+  @Column({ nullable: true })
+  tfaSecret: string;
+
   @Column({ nullable: true })
   profileUrl?: string;
 

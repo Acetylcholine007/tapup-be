@@ -7,6 +7,7 @@ import { GoogleAuthGuard } from '@common/guards/google-auth.guard';
 import { LocalAuthGuard } from '@common/guards/local-auth.guard';
 import { RefreshTokenGuard } from '@common/guards/refresh-token.guard';
 import { ResetTokenGuard } from '@common/guards/reset-token.guard';
+import { TFAGuard } from '@common/guards/tfa.guard';
 import { VerifyTokenGuard } from '@common/guards/verify-token.guard';
 import { UserEntity } from '@entities/user.entity';
 import { CryptoService } from '@modules/crypto/services/crypto.service';
@@ -27,6 +28,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
+import { toFileStream } from 'qrcode';
 import { ChangePasswordInput } from '../dto/input/change-password.input';
 import { OAuthStateInput } from '../dto/input/oauth-state.input';
 import { RefreshTokenInput } from '../dto/input/refresh-token.input';
@@ -85,13 +87,14 @@ export class AuthController {
   }
 
   @Public()
-  @UseGuards(LocalAuthGuard)
+  @UseGuards(LocalAuthGuard, TFAGuard)
   @Post('sign-in-local')
   async signInLocal(
     @CurrentUser() currentUser: UserEntity,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Body() _body: SignInLocalInput
   ) {
+    //TODO: Return 2FAToken instead of TokenOutput if user has 2FA enabled
     return this.authService.signIn(currentUser);
   }
 
@@ -100,6 +103,8 @@ export class AuthController {
   signup(@Body() registerInput: RegisterLocalInput) {
     return this.authService.registerLocal(registerInput);
   }
+
+  //TODO: Create 2FA endpoint to retrieve TokenOutput and use 2FATokenGuard
 
   @Public()
   @UseGuards(RefreshTokenGuard)
@@ -165,5 +170,13 @@ export class AuthController {
     @Body() changePasswordInput: ChangePasswordInput
   ) {
     return this.authService.changePassword(currentUser, changePasswordInput);
+  }
+
+  @ApiBearerAuth()
+  @Patch('enable-tfa')
+  async enableTfa(@CurrentUser() user: UserEntity, @Res() response: Response) {
+    const tfaOutput = await this.authService.enableTfa(user);
+    response.type('png');
+    return toFileStream(response, tfaOutput.uri);
   }
 }

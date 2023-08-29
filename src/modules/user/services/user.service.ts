@@ -54,6 +54,12 @@ export class UserService {
     return this.userRepository.save(user);
   }
 
+  async enableTfa(user: UserEntity, secret: string) {
+    user.isTfaEnabled = true;
+    user.tfaSecret = secret;
+    return this.userRepository.save(user);
+  }
+
   async deleteUser(id: string) {
     const user = await this.getUser(id);
     return this.userRepository.remove(user);

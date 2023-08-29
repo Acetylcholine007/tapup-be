@@ -1,4 +1,9 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumberString,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class SignInLocalInput {
   @IsNotEmpty()
@@ -8,4 +13,9 @@ export class SignInLocalInput {
   @IsNotEmpty()
   @IsString()
   password: string;
+
+  //TODO: Remove TFA Code in here and move it on a new TFAInput dto
+  @IsOptional()
+  @IsNumberString()
+  tfaCode?: string;
 }
