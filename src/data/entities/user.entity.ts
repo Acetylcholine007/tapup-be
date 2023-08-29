@@ -1,4 +1,5 @@
 import { Role } from '@enums/user.enum';
+import { ApiHideProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 import {
   Column,
@@ -26,6 +27,7 @@ export class UserEntity {
   email: string;
 
   @Exclude()
+  @ApiHideProperty()
   @Column({ nullable: true })
   password?: string;
 

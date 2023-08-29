@@ -8,7 +8,12 @@
       {
         "name": "@nestjs/swagger",
         "options": {
-          "dtoFileNameSuffix": [".dto.ts", ".input.ts", ".output.ts"]
+          "dtoFileNameSuffix": [
+            ".dto.ts",
+            ".input.ts",
+            ".output.ts",
+            ".entity.ts"
+          ]
         }
       }
     ],

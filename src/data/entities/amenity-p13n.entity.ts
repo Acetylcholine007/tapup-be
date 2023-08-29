@@ -1,3 +1,4 @@
+import { ApiHideProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { AmenityEntity } from './amenity.entity';
@@ -5,6 +6,7 @@ import { AmenityEntity } from './amenity.entity';
 @Entity('amenity_p13n')
 export class AmenityPersonalizationEntity {
   @Exclude()
+  @ApiHideProperty()
   @PrimaryGeneratedColumn('uuid')
   id: string;
 

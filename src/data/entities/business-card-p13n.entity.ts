@@ -1,3 +1,4 @@
+import { ApiHideProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { BusinessCardEntity } from './business-card.entity';
@@ -5,6 +6,7 @@ import { BusinessCardEntity } from './business-card.entity';
 @Entity('business_card_p13n')
 export class BusinessCardPersonalizationEntity {
   @Exclude()
+  @ApiHideProperty()
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
