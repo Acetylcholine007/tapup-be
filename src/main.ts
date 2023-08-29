@@ -53,6 +53,7 @@ async function setupSwagger(
   SwaggerModule.setup('/api', app, document, {
     swaggerOptions: {
       persistAuthorization: true,
+      tagsSorter: 'alpha',
       operationsSorter: 'method',
     },
   });
