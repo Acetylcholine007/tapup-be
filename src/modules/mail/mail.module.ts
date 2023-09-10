@@ -21,12 +21,10 @@ import { MailService } from './services/mail.service';
           defaults: {
             from: `"No Reply" <${mailConfiguration.from}>`,
           },
-          preview: true,
           template: {
             dir: join(__dirname, '../../templates/'),
             adapter: new HandlebarsAdapter(undefined, {
               inlineCssEnabled: true,
-              // inlineCssOptions: { url: '', preserveMediaQueries: true },
             }),
             options: {
               strict: true,
