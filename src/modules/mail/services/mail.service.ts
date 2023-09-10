@@ -32,7 +32,7 @@ export class MailService {
             .minutes(),
           verifyAccountLink: `${this.configService.get<string>(
             'backendUrl'
-          )}/auth/verify-account?verifyToken=${verifyToken}`,
+          )}/api/auth/verify-account?verifyToken=${verifyToken}`,
         },
       });
     } catch (error) {
