@@ -129,6 +129,8 @@ export class AuthService {
       password: hashedPassword,
     });
 
+    await this.sendVerificationEmail(user, {});
+
     return this.cryptoService.generateTokens(user);
   }
 

@@ -24,6 +24,7 @@ import { UserService } from '../services/user.service';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @Roles(Role.ADMIN)
   @Get()
   getUsers(@Query() paginationQuery: PaginationInput) {
     return this.userService.getUsers(paginationQuery);
@@ -34,6 +35,7 @@ export class UserController {
     return this.userService.getUser(currentUser.id);
   }
 
+  @Roles(Role.ADMIN)
   @Get('/:userId')
   getUser(@Param('userId') userId: string) {
     return this.userService.getUser(userId);
